@@ -20,9 +20,16 @@ import { UpdateUserDto } from './dto/update-user.dto';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  // @Post()
+  // create(@Body() createUserDto: CreateUserDto) {
+  //   return this.usersService.create(createUserDto);
+  // }
+
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+    const { name, email } = createUserDto;
+    return `유저 생성 완료: ${name}, ${email}`;
+    //return this.usersService.create(createUserDto);
   }
 
   @HttpCode(202)
