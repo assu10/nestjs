@@ -1,11 +1,15 @@
-import { Injectable, UnprocessableEntityException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import * as uuid from 'uuid';
 import { ulid } from 'ulid';
 import { EmailService } from '../email/email.service';
 import { UserInfo } from './UserInfo';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from './entity/user.entity';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 
 @Injectable()
 export class UsersService {
@@ -15,6 +19,7 @@ export class UsersService {
     // UsersService 에 `@InjectRepository` 데커레이터로 유저 저장소 주입
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
+    private dataSource: DataSource, // TypeORM 에서 제공하는 DataSource 객체 주입
   ) {}
 
   // 회원 가입
@@ -29,7 +34,13 @@ export class UsersService {
     console.log('signupVerifyToken: ', signupVerifyToken);
 
     // 유저 정보 저장
-    await this.saveUser(name, email, password, signupVerifyToken);
+    //await this.saveUser(name, email, password, signupVerifyToken);
+    await this.saveUserUsingQueryRunner(
+      name,
+      email,
+      password,
+      signupVerifyToken,
+    );
 
     // 회원 가입 이메일 발송
     await this.sendMemberJoinEmail(email, signupVerifyToken);
@@ -41,6 +52,7 @@ export class UsersService {
       where: { email: email },
     });
 
+    console.log('user: ', user);
     return user !== undefined;
   }
 
@@ -59,6 +71,45 @@ export class UsersService {
     user.signupVerifyToken = signupVerifyToken;
 
     await this.userRepository.save(user);
+  }
+
+  // 유저 정보 저장 - QueryRunner 로 트랜잭션 제어
+  private async saveUserUsingQueryRunner(
+    name: string,
+    email: string,
+    password: string,
+    signupVerifyToken: string,
+  ) {
+    // 주입받은 DataSource 객체에서 QueryRunner 생성
+    const queryRunner = this.dataSource.createQueryRunner();
+
+    // QueryRunner 에 DB 연결 후 트랜잭션 시작
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const user = new UserEntity(); // 유저 엔티티 객체 생성
+      user.id = ulid();
+      user.name = name;
+      user.email = email;
+      user.password = password;
+      user.signupVerifyToken = signupVerifyToken;
+
+      // 트랜잭션을 커밋하여 영속화(persistence) 함
+      await queryRunner.manager.save(user);
+
+      // 일부러 에러 발생
+      //throw new InternalServerErrorException();
+
+      // DB 작업 수행 수 커밋하여 영속화 완료
+      await queryRunner.commitTransaction();
+    } catch (e) {
+      // 에러 발생 시 롤백
+      await queryRunner.rollbackTransaction();
+    } finally {
+      // 직접 생성한 QueryRunner 해제
+      await queryRunner.release();
+    }
   }
 
   // 회원 가입 이메일 발송
