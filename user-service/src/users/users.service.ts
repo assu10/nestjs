@@ -35,7 +35,13 @@ export class UsersService {
 
     // 유저 정보 저장
     //await this.saveUser(name, email, password, signupVerifyToken);
-    await this.saveUserUsingQueryRunner(
+    // await this.saveUserUsingQueryRunner(
+    //   name,
+    //   email,
+    //   password,
+    //   signupVerifyToken,
+    // );
+    await this.saveUserUsingTransaction(
       name,
       email,
       password,
@@ -53,7 +59,7 @@ export class UsersService {
     });
 
     console.log('user: ', user);
-    return user !== undefined;
+    return user !== null;
   }
 
   // 유저 정보 저장
@@ -86,7 +92,6 @@ export class UsersService {
     // QueryRunner 에 DB 연결 후 트랜잭션 시작
     await queryRunner.connect();
     await queryRunner.startTransaction();
-
     try {
       const user = new UserEntity(); // 유저 엔티티 객체 생성
       user.id = ulid();
@@ -98,8 +103,8 @@ export class UsersService {
       // 트랜잭션을 커밋하여 영속화(persistence) 함
       await queryRunner.manager.save(user);
 
-      // 일부러 에러 발생
-      //throw new InternalServerErrorException();
+      // 일부러 에러 발생 시 데이터 저장 안됨
+      // throw new InternalServerErrorException();
 
       // DB 작업 수행 수 커밋하여 영속화 완료
       await queryRunner.commitTransaction();
@@ -110,6 +115,28 @@ export class UsersService {
       // 직접 생성한 QueryRunner 해제
       await queryRunner.release();
     }
+  }
+
+  // 유저 정보 저장 - transaction 함수 직접 이용하여 트랜잭션 제어
+  private async saveUserUsingTransaction(
+    name: string,
+    email: string,
+    password: string,
+    signupVerifyToken: string,
+  ) {
+    await this.dataSource.transaction(async (manager) => {
+      const user = new UserEntity(); // 유저 엔티티 객체 생성
+      user.id = ulid();
+      user.name = name;
+      user.email = email;
+      user.password = password;
+      user.signupVerifyToken = signupVerifyToken;
+
+      await manager.save(user);
+
+      // 일부러 에러 발생 시 데이터 저장 안됨
+      //throw new InternalServerErrorException();
+    });
   }
 
   // 회원 가입 이메일 발송

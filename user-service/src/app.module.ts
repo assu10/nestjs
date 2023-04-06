@@ -23,7 +23,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       password: process.env.DATABASE_PASSWORD,
       database: 'test',
       entities: [__dirname + '/**/*.entity{.ts,.js}'], // TypeORM 이 구동될 때 인식하도록 할 entity 클래스의 경로 지정
-      synchronize: true, // 서비스 구동 시 소스 코드 기반으로 DB 스키마 동기화할지 여부, PROD 에서는 false 로 할 것
+      synchronize: process.env.DATABASE_SYNCRONIZE === 'true', // 서비스 구동 시 소스 코드 기반으로 DB 스키마 동기화할지 여부, PROD 에서는 false 로 할 것
+      migrationsRun: false, // 서버가 구동될 때 작성된 마이그레이션 파일을 기반으로 마이그레이션 수행할 지 여부 설정, false 로 하여 cli 명령어로 직접 입력하도록 함
+      migrations: [__dirname + '/migrations/**/*{.ts,.js}'], // 마이그레이션을 수행할 파일이 관리되는 경로, 디폴트 migrations
+      migrationsTableName: 'migrations',
     }),
   ],
   controllers: [],

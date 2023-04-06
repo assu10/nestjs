@@ -34,3 +34,4 @@ lerna-debug.log*
 !.vscode/tasks.json
 !.vscode/launch.json
 !/user-service/src/config/env/
+!/user-service/ormconfig.ts
