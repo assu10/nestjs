@@ -1,6 +1,7 @@
 import {
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import * as uuid from 'uuid';
@@ -10,6 +11,7 @@ import { UserInfo } from './UserInfo';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from './entity/user.entity';
 import { DataSource, Repository } from 'typeorm';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class UsersService {
@@ -20,6 +22,7 @@ export class UsersService {
     @InjectRepository(UserEntity)
     private userRepository: Repository<UserEntity>,
     private dataSource: DataSource, // TypeORM 에서 제공하는 DataSource 객체 주입
+    private authService: AuthService,
   ) {}
 
   // 회원 가입
@@ -149,25 +152,58 @@ export class UsersService {
 
   // 이메일 인증
   async verifyEmail(signupVerifyToken: string): Promise<string> {
-    // TODO: DB 에 signupVerifyToken 으로 회원 가입 처리중인 유저가 있는지 조회 후 없다면 에러 처리
-    // TODO: 바로 로그인 상태가 되도록 JWT 발급
+    // DB 에 signupVerifyToken 으로 회원 가입 처리중인 유저가 있는지 조회 후 없다면 에러 처리
+    const user = await this.userRepository.findOne({
+      where: { signupVerifyToken },
+    });
 
-    throw new Error('아직 미구현된 로직');
+    if (!user) {
+      throw new NotFoundException('존재하지 않는 유저');
+    }
+
+    // 바로 로그인 상태가 되도록 JWT 발급
+    return this.authService.login({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    });
   }
 
   // 로그인
   async login(email: string, password: string): Promise<string> {
-    // TODO: DB 에 email, password 가진 유저 존재 여부 조회 후 없다면 에러 처리
-    // TODO: JWT 발급
+    // DB 에 email, password 가진 유저 존재 여부 조회 후 없다면 에러 처리
+    const user = await this.userRepository.findOne({
+      where: { email, password },
+    });
 
-    throw new Error('아직 미구현된 로직');
+    if (!user) {
+      throw new NotFoundException('존재하지 않는 유저');
+    }
+
+    // JWT 발급
+    return this.authService.login({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    });
   }
 
   // 유저 정보 조회
   async getUserInfo(userId: string): Promise<UserInfo> {
-    // TODO: DB 에 userId 가진 유저 존재 여부 조회 후 없다면 에러 처리
-    // TODO: 조회 데이터를 userInfo 타입으로 리턴
+    // DB 에 userId 가진 유저 존재 여부 조회 후 없다면 에러 처리
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
 
-    throw new Error('아직 미구현된 로직');
+    if (!user) {
+      throw new NotFoundException('존재하지 않는 유저');
+    }
+
+    // 조회 데이터를 userInfo 타입으로 리턴
+    return {
+      id: userId,
+      name: user.name,
+      email: user.email,
+    };
   }
 }
