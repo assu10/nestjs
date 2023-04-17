@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import authConfig from './config/authConfig';
 import * as winston from 'winston';
 import { utilities, WinstonModule } from 'nest-winston';
+import { ExceptionModule } from './exception/exception.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { utilities, WinstonModule } from 'nest-winston';
         }),
       ],
     }),
+    ExceptionModule,
   ],
   controllers: [],
   providers: [],
