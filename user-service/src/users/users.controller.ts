@@ -55,6 +55,7 @@ export class UsersController {
     this.logger.verbose('verbose: ', JSON.stringify(dto));
     this.logger.debug('debug: ', JSON.stringify(dto));
   }
+
   // 이메일 인증
   @Post('/email-verify')
   async verifyEmail(@Query() dto: VerifyEmailDto): Promise<string> {
