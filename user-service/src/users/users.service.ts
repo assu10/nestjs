@@ -25,7 +25,7 @@ export class UsersService {
     private authService: AuthService,
   ) {}
 
-  // 회원 가입
+  /*// 회원 가입
   async createUser(name: string, email: string, password: string) {
     // 가입 유무 확인
     const userExist = await this.checkUserExists(email);
@@ -53,9 +53,9 @@ export class UsersService {
 
     // 회원 가입 이메일 발송
     await this.sendMemberJoinEmail(email, signupVerifyToken);
-  }
+  }*/
 
-  // 가입 유무 확인
+  /*  // 가입 유무 확인
   private async checkUserExists(email: string) {
     const user = await this.userRepository.findOne({
       where: { email: email },
@@ -63,10 +63,10 @@ export class UsersService {
 
     console.log('user: ', user);
     return user !== null;
-  }
+  }*/
 
   // 유저 정보 저장
-  private async saveUser(
+  /*private async saveUser(
     name: string,
     email: string,
     password: string,
@@ -80,10 +80,10 @@ export class UsersService {
     user.signupVerifyToken = signupVerifyToken;
 
     await this.userRepository.save(user);
-  }
+  }*/
 
   // 유저 정보 저장 - QueryRunner 로 트랜잭션 제어
-  private async saveUserUsingQueryRunner(
+  /*private async saveUserUsingQueryRunner(
     name: string,
     email: string,
     password: string,
@@ -118,9 +118,9 @@ export class UsersService {
       // 직접 생성한 QueryRunner 해제
       await queryRunner.release();
     }
-  }
+  }*/
 
-  // 유저 정보 저장 - transaction 함수 직접 이용하여 트랜잭션 제어
+  /*  // 유저 정보 저장 - transaction 함수 직접 이용하여 트랜잭션 제어
   private async saveUserUsingTransaction(
     name: string,
     email: string,
@@ -140,18 +140,18 @@ export class UsersService {
       // 일부러 에러 발생 시 데이터 저장 안됨
       //throw new InternalServerErrorException();
     });
-  }
+  }*/
 
   // 회원 가입 이메일 발송
-  private async sendMemberJoinEmail(email: string, signupVerifyToken: string) {
-    await this.emailService.sendMemberJoinVerification(
-      email,
-      signupVerifyToken,
-    );
-  }
+  // private async sendMemberJoinEmail(email: string, signupVerifyToken: string) {
+  //   await this.emailService.sendMemberJoinVerification(
+  //     email,
+  //     signupVerifyToken,
+  //   );
+  // }
 
   // 이메일 인증
-  async verifyEmail(signupVerifyToken: string): Promise<string> {
+  /*  async verifyEmail(signupVerifyToken: string): Promise<string> {
     // DB 에 signupVerifyToken 으로 회원 가입 처리중인 유저가 있는지 조회 후 없다면 에러 처리
     const user = await this.userRepository.findOne({
       where: { signupVerifyToken },
@@ -167,9 +167,9 @@ export class UsersService {
       name: user.name,
       email: user.email,
     });
-  }
+  }*/
 
-  // 로그인
+  /*// 로그인
   async login(email: string, password: string): Promise<string> {
     // DB 에 email, password 가진 유저 존재 여부 조회 후 없다면 에러 처리
     const user = await this.userRepository.findOne({
@@ -186,7 +186,7 @@ export class UsersService {
       name: user.name,
       email: user.email,
     });
-  }
+  }*/
 
   // 유저 정보 조회
   async getUserInfo(userId: string): Promise<UserInfo> {

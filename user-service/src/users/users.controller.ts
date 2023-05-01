@@ -19,6 +19,10 @@ import { UsersService } from './users.service';
 import { AuthService } from '../auth/auth.service';
 import { AuthGuard } from 'src/auth.guard';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import { CommandBus } from '@nestjs/cqrs';
+import { CreateUserCommand } from './command/create-user.command';
+import { VerifyEmailCommand } from './command/verify-email.command';
+import { LoginCommand } from './command/login.command';
 
 @Controller('users')
 export class UsersController {
@@ -27,22 +31,37 @@ export class UsersController {
     private readonly usersService: UsersService,
     private readonly authService: AuthService,
 
+    // @nestjs/cqrs 패키지에서 제공하는 CommandBus 주입
+    private commandBus: CommandBus,
+
     // 내장 로거 대체
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
   ) {}
-  // 회원 가입
+
+  /*  // 회원 가입 - UsersService 사용
   @Post()
   async createUser(@Body() dto: CreateUserDto): Promise<void> {
     const { name, email, password } = dto;
     console.log('createUser dto: ', dto);
     //this.printWinstonLog(dto);
-    this.printLoggerServiceLog(dto);
+    //this.printLoggerServiceLog(dto);
     await this.usersService.createUser(name, email, password);
+  }*/
+
+  // 회원 가입 - Command 사용
+  @Post()
+  async createUser(@Body() dto: CreateUserDto): Promise<void> {
+    const { name, email, password } = dto;
+
+    const command = new CreateUserCommand(name, email, password);
+
+    // 직접 만든 CreateUserCommand 전송
+    return this.commandBus.execute(command);
   }
 
   // 내장 로거 대체
-  private printLoggerServiceLog(dto) {
+  /*  private printLoggerServiceLog(dto) {
     try {
       throw new InternalServerErrorException('test');
     } catch (e) {
@@ -54,22 +73,40 @@ export class UsersController {
     this.logger.log('log: ', JSON.stringify(dto));
     this.logger.verbose('verbose: ', JSON.stringify(dto));
     this.logger.debug('debug: ', JSON.stringify(dto));
-  }
+  }*/
 
-  // 이메일 인증
+  /*  // 이메일 인증 - UsersService 사용
   @Post('/email-verify')
   async verifyEmail(@Query() dto: VerifyEmailDto): Promise<string> {
     const { signupVerifyToken } = dto;
     console.log('verifyEmail dto: ', dto);
     return await this.usersService.verifyEmail(signupVerifyToken);
+  }*/
+
+  // 이메일 인증 - Command 사용
+  @Post('/email-verify')
+  async verifyEmail(@Query() dto: VerifyEmailDto): Promise<string> {
+    const { signupVerifyToken } = dto;
+
+    const command = new VerifyEmailCommand(signupVerifyToken);
+
+    return this.commandBus.execute(command);
   }
+
+  // // 로그인
+  // @Post('login')
+  // async login(@Body() dto: UserLoginDto): Promise<string> {
+  //   const { email, password } = dto;
+  //   console.log('login dto: ', dto);
+  //   return await this.usersService.login(email, password);
+  // }
 
   // 로그인
   @Post('login')
   async login(@Body() dto: UserLoginDto): Promise<string> {
     const { email, password } = dto;
-    console.log('login dto: ', dto);
-    return await this.usersService.login(email, password);
+    const command = new LoginCommand(email, password);
+    return this.commandBus.execute(command);
   }
 
   // 유저 정보 조회
