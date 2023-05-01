@@ -15,24 +15,25 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { UserLoginDto } from './dto/user-login.dto';
 import { UserInfo } from './UserInfo';
-import { UsersService } from './users.service';
 import { AuthService } from '../auth/auth.service';
 import { AuthGuard } from 'src/auth.guard';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-import { CommandBus } from '@nestjs/cqrs';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { CreateUserCommand } from './command/create-user.command';
 import { VerifyEmailCommand } from './command/verify-email.command';
 import { LoginCommand } from './command/login.command';
+import { GetUserInfoQuery } from './query/get-user-info.query';
 
 @Controller('users')
 export class UsersController {
   // UsersService 를 컨트롤러에 주입
   constructor(
-    private readonly usersService: UsersService,
     private readonly authService: AuthService,
 
     // @nestjs/cqrs 패키지에서 제공하는 CommandBus 주입
     private commandBus: CommandBus,
+
+    private queryBus: QueryBus,
 
     // 내장 로거 대체
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
@@ -109,16 +110,26 @@ export class UsersController {
     return this.commandBus.execute(command);
   }
 
-  // 유저 정보 조회
+  // // 유저 정보 조회 - UserService 사용
+  // @UseGuards(AuthGuard)
+  // @Get(':id')
+  // async getUserInfo(
+  //   @Headers() headers: any,
+  //   @Param('id') userId: string,
+  // ): Promise<UserInfo> {
+  //   const getUserInfoQuery = new GetUserInfoQuery(userId);
+  //   return await this.usersService.getUserInfo(userId);
+  // }
+
+  // 유저 정보 조회 - Query 사용
   @UseGuards(AuthGuard)
   @Get(':id')
   async getUserInfo(
     @Headers() headers: any,
     @Param('id') userId: string,
   ): Promise<UserInfo> {
-    // jwt 파싱
-    //const jwtString = headers.authorization.split('Bearer ')[1];
-    //this.authService.verify(jwtString);
-    return await this.usersService.getUserInfo(userId);
+    const getUserInfoQuery = new GetUserInfoQuery(userId);
+
+    return this.queryBus.execute(getUserInfoQuery);
   }
 }
