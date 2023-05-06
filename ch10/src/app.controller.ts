@@ -1,10 +1,19 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, ValidationPipe } from '@nestjs/common';
 import { AppService } from './app.service';
 import { User } from './user.decorator';
 import { UserData } from './user-data.decorator';
+import { IsString } from 'class-validator';
 
 interface User {
   name: string;
+  email: string;
+}
+
+class UserEntity {
+  @IsString()
+  name: string;
+
+  @IsString()
   email: string;
 }
 @Controller()
@@ -26,5 +35,13 @@ export class AppController {
   @Get('/name3')
   getHello3(@UserData() name: string): void {
     console.log('------', name);
+  }
+
+  @Get('/with-pipe')
+  getHello4(
+    @User(new ValidationPipe({ validateCustomDecorators: true }))
+    user: UserEntity,
+  ): void {
+    console.log('---', user);
   }
 }
