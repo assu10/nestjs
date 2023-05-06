@@ -1,15 +1,19 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
-import { AuthGuard } from './auth.guard';
+import { User } from './user.decorator';
 
-@UseGuards(AuthGuard) // 클래스에 가드 적용
+interface User {
+  name: string;
+  email: string;
+}
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @UseGuards(AuthGuard) // 메서드에 가드 적용
   @Get()
-  getHello(): string {
+  getHello(@User() user: User): string {
+    // User 커스텀 데커레이터 사용
+    console.log('------', user);
     return this.appService.getHello();
   }
 }

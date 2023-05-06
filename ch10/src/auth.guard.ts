@@ -11,9 +11,11 @@ export class AuthGuard implements CanActivate {
 
   // 얻은 정보(request) 를 내부 규칙으로 평가 진행
   private validateRequest(request: any) {
-    // 편의상 true 리턴
-    // false 로 리턴 시 403 Forbidden 에러 발생함
-    // 다른 에러 응답을 원하면 직접 다른 예외 생성해서 던지면 됨
+    // JWT 를 검증해서 얻은 정보 넣음. 편의상 하드코딩함
+    request.user = {
+      name: 'assu',
+      email: 'test@test.com',
+    };
     return true;
   }
 }
