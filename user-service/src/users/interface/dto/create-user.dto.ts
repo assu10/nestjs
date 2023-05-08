@@ -7,7 +7,7 @@ import {
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { BadRequestException } from '@nestjs/common';
-import { NotIn } from '../../utils/decorators/not-in';
+import { NotIn } from '../../../utils/decorators/not-in';
 
 export class CreateUserDto {
   @IsString()

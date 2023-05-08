@@ -15,14 +15,14 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 import { UserLoginDto } from './dto/user-login.dto';
 import { UserInfo } from './UserInfo';
-import { AuthService } from '../auth/auth.service';
+import { AuthService } from '../../auth/auth.service';
 import { AuthGuard } from 'src/auth.guard';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { CreateUserCommand } from './command/create-user.command';
-import { VerifyEmailCommand } from './command/verify-email.command';
-import { LoginCommand } from './command/login.command';
-import { GetUserInfoQuery } from './query/get-user-info.query';
+import { CreateUserCommand } from '../application/command/create-user.command';
+import { VerifyEmailCommand } from '../application/command/verify-email.command';
+import { LoginCommand } from '../application/command/login.command';
+import { GetUserInfoQuery } from '../application/query/get-user-info.query';
 
 @Controller('users')
 export class UsersController {
